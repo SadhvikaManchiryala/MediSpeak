@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSpeak | Patient View</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 font-sans min-h-screen flex flex-col items-center p-6 text-slate-900">
+
+    <div class="w-full max-w-md flex justify-between items-center mb-8">
+        <h1 class="text-2xl font-bold text-blue-600 flex items-center gap-2">💊 MedSpeak</h1>
+        <span class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-bold uppercase">Verified</span>
+    </div>
+
+    <div class="w-full max-w-md bg-white rounded-[2rem] shadow-2xl p-8 border border-slate-100 text-center">
+        <p class="text-slate-400 font-bold text-sm tracking-widest mb-2 uppercase">Prescription Details</p>
+        <h2 id="display-med" class="text-4xl font-black text-slate-900 mb-8 border-b-4 border-blue-100 pb-2 italic">---</h2>
+
+        <div class="space-y-6 text-left">
+            <div class="flex items-center gap-5 p-5 bg-blue-50 rounded-2xl">
+                <span class="text-4xl">⏰</span>
+                <div>
+                    <p class="text-xs font-black text-blue-500 uppercase">Timing</p>
+                    <p id="display-time" class="text-xl font-bold">---</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-5 p-5 bg-orange-50 rounded-2xl">
+                <span class="text-4xl">🍽️</span>
+                <div>
+                    <p class="text-xs font-black text-orange-500 uppercase">Food Guide</p>
+                    <p id="display-food" class="text-xl font-bold">---</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading-spinner" class="hidden mt-8 flex items-center justify-center gap-3 text-blue-600 font-bold animate-pulse">
+            <div class="w-5 h-5 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            Playing Instructions...
+        </div>
+
+        <button onclick="playVoice()" class="mt-8 w-full bg-slate-900 text-white py-6 rounded-3xl font-bold text-xl flex items-center justify-center gap-4 hover:bg-black transition-all active:scale-95 shadow-xl">
+            <span class="text-2xl">🔊</span> Hear Instructions
+        </button>
+    </div>
+
+   <script>
+    const translationDict = {
+        "morning": "ఉదయం", "afternoon": "మధ్యాహ్నం", "evening": "సాయంత్రం", "night": "రాత్రి",
+        "before_meal": "భోజనానికి ముందు", "after_meal": "భోజనం తర్వాత", "empty_stomach": "ఖాళీ కడుపుతో"
+    };
+
+    window.onload = function() {
+        const params = new URLSearchParams(window.location.search);
+        const med = params.get('med') || "---";
+        const t = (params.get('time') || "").toLowerCase().trim();
+        const f = (params.get('food') || "").toLowerCase().trim();
+
+        document.getElementById('display-med').innerText = med;
+        document.getElementById('display-time').innerText = translationDict[t] || t || "---";
+        document.getElementById('display-food').innerText = translationDict[f] || f || "---";
+    };
+
+    function playVoice() {
+        const params = new URLSearchParams(window.location.search);
+        const medName = params.get('med') || "";
+        const t = (params.get('time') || "").toLowerCase().trim();
+        const f = (params.get('food') || "").toLowerCase().trim();
+        const spinner = document.getElementById('loading-spinner');
+
+        if (!medName) return;
+        spinner.classList.remove('hidden');
+
+        
+        const intro = new SpeechSynthesisUtterance("ఈ మందు పేరు " + medName);
+        intro.lang = 'te-IN';
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(intro);
+
+        intro.onend = function() {
+            
+            const timeAudio = new Audio("audio/" + t + ".mp3?v=" + Date.now());
+            const foodAudio = new Audio("audio/" + f + ".mp3?v=" + Date.now());
+
+            timeAudio.play().then(() => {
+                timeAudio.onended = () => {
+                    setTimeout(() => {
+                        foodAudio.play().catch(e => spinner.classList.add('hidden'));
+                    }, 500);
+                };
+            }).catch(err => {
+                spinner.classList.add('hidden');
+                
+                alert("Failed to load: " + timeAudio.src);
+            });
+
+            foodAudio.onended = () => spinner.classList.add('hidden');
+        };
+    }
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+

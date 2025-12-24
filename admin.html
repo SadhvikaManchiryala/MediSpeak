@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pharmacist Dashboard | MedSpeak</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body class="bg-slate-100 p-10 font-sans">
+    <div class="max-w-xl mx-auto bg-white p-10 rounded-3xl shadow-lg">
+        <h1 class="text-2xl font-bold text-blue-600 mb-6 text-center">💊 Create Patient QR</h1>
+        
+        <div class="space-y-4">
+            <input id="med" type="text" placeholder="Medicine Name" class="w-full p-4 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-blue-400">
+            
+            <div class="flex gap-2">
+                <select id="time" class="w-full p-4 border rounded-xl bg-gray-50 outline-none">
+                    <option value="morning">Morning</option>
+                    <option value="afternoon">Afternoon</option>
+                    <option value="evening">Evening</option>
+                    <option value="night">Night</option>
+                </select>
+                <button onclick="testAudio('time')" class="px-4 bg-gray-200 rounded-xl hover:bg-gray-300">🔊 Test</button>
+            </div>
+
+            <div class="flex gap-2">
+                <select id="food" class="w-full p-4 border rounded-xl bg-gray-50 outline-none">
+                    <option value="before_meal">Before Meal</option>
+                    <option value="after_meal">After Meal</option>
+                    <option value="empty_stomach">Empty Stomach</option>
+                </select>
+                <button onclick="testAudio('food')" class="px-4 bg-gray-200 rounded-xl hover:bg-gray-300">🔊 Test</button>
+            </div>
+            
+            <button onclick="generateLink()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-blue-700 transition">Generate QR Code</button>
+        </div>
+
+        <div id="result" class="mt-10 hidden border-t pt-8 text-center">
+            <div id="qrcode-canvas" class="flex justify-center mb-6 px-4"></div>
+            <p class="text-gray-500 text-sm mb-4">Scan this with the patient app</p>
+            <button onclick="window.print()" class="text-blue-500 font-bold hover:underline">Print Sticker</button>
+        </div>
+    </div>
+
+    <script>
+        function testAudio(type) {
+            const val = document.getElementById(type).value;
+            const audio = new Audio(`audio/${val}.mp3`);
+            audio.play().catch(e => {
+                alert(`Error: Cannot find audio/${val}.mp3\nCheck your GitHub folder and filename!`);
+            });
+        }
+
+        function generateLink() {
+            const m = document.getElementById('med').value.trim();
+            const t = document.getElementById('time').value;
+            const f = document.getElementById('food').value;
+
+            if(!m) return alert("Please enter a medicine name");
+
+            const baseUrl = window.location.href.split('admin.html')[0] + 'index.html';
+            const fullUrl = `${baseUrl}?med=${encodeURIComponent(m)}&time=${t}&food=${f}`;
+
+            document.getElementById('qrcode-canvas').innerHTML = "";
+            new QRCode(document.getElementById("qrcode-canvas"), {
+                text: fullUrl,
+                width: 256,
+                height: 256
+            });
+            document.getElementById('result').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
